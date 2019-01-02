@@ -12,5 +12,9 @@
     <module>threadlocal-demo</module>
     <module>rpc-demo</module>
     <module>springMvc-demo</module>
+    <module>algorithm-demo</module>
+    <module>pulsar-demo</module>
+    <module>servlet-demo</module>
+    <module>es-doc-robot</module>
   </modules>
 </project>

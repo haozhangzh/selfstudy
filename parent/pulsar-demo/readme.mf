@@ -1,0 +1,88 @@
+创建 pulsarClient:
+PulsarClient.builder().serviceUrl(remoteClusterUrl).build();
+
+如下是PulsarClient接口中的builder()方法，生成一个ClientBuilderImpl对象
+public interface PulsarClient extends Closeable {
+
+    /**
+     * Get a new builder instance that can used to configure and build a {@link PulsarClient} instance.
+     *
+     * @return the {@link ClientBuilder}
+     *
+     * @since 2.0.0
+     */
+    public static ClientBuilder builder() {
+        return new ClientBuilderImpl();
+    }
+    .....
+ }
+ 
+ ClientBuilderImpl
+ 有两个构造方法
+ public class ClientBuilderImpl implements ClientBuilder {
+    ClientConfigurationData conf;
+
+    public ClientBuilderImpl() {
+        this(new ClientConfigurationData());
+    }
+
+    public ClientBuilderImpl(ClientConfigurationData conf) {
+        this.conf = conf;
+    }
+    ....
+}
+PulsarClient只有一个实现类 PulsarClientImpl
+ClientBuilderImpl的build()方法返回一个PulsarClientImpl实例
+默认的构造生成一个默认的ClientConfigurationData.
+ClientConfigurationData 客户端配置bean
+
+PulsarClient可生成 producer、customer、reader的builder对象,
+三类对象都有同步跟异步方法，可指定相关Schema，默认为BytesSchema。
+1.ProducerBuilderImpl
+  继承自 ProducerBuilder
+  重要属性：
+     private final PulsarClientImpl client;
+     private ProducerConfigurationData conf;
+     private Schema<T> schema;
+     private List<ProducerInterceptor<T>> interceptorList;
+     ProducerConfigurationData 默认压缩方式： CompressionType.NONE、默认负载方式 MessageRoutingMode.RoundRobinPartition
+     hash方式 HashingScheme.JavaStringHash
+  重要方法：
+     create()       // 生成同步Producer
+     createAsync() // 生成异步Producer
+     intercept(ProducerInterceptor<T>... interceptors)  // 设置拦截器
+2.ConsumerBuilderImpl
+  继承自ConsumerBuilder
+  重要属性：
+     private final PulsarClientImpl client;
+     private ConsumerConfigurationData<T> conf;
+     private final Schema<T> schema;
+     private List<ConsumerInterceptor<T>> interceptorList;
+     private static long MIN_ACK_TIMEOUT_MILLIS = 1000; 
+     ConsumerConfigurationData     
+        默认订阅类型：SubscriptionType.Exclusive
+        消费位置：SubscriptionInitialPosition.Latest
+        持久方式：Mode.PERSISTENT
+  重要方法：
+     subscribe()  // 同步
+     subscribeAsync()  // 异步
+     intercept(ConsumerInterceptor<T>... interceptors)
+     messageListener(@NonNull MessageListener<T> messageListener)
+     consumerEventListener(ConsumerEventListener consumerEventListener)
+3.ReaderBuilderImpl
+  继承自ReaderBuilder
+  重要属性：
+     private final PulsarClientImpl client;
+     private ReaderConfigurationData<T> conf;
+     private final Schema<T> schema;   
+     ReaderConfigurationData
+      MessageId 默认为空，需要指定。
+      MessageId有两个实现类： MessageIdImpl、TopicMessageIdImpl
+  重要方法：
+     create()
+     createAsync()
+     readerListener(ReaderListener<T> readerListener)
+     startMessageId(MessageId startMessageId)
+  
+          
+
